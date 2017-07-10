@@ -2,7 +2,7 @@
 stages:
 - name: Build
   inputs:
-  - url: ${ECHO_MODULE_REPO}
+  - url: ${APP_REPO}
     type: git
     branch: master
     dir_name: null
@@ -33,14 +33,14 @@ stages:
     SERVICE_INSTANCE_TYPE: nexus
 - name: Sonar
   inputs:
-  - url: ${ECHO_MODULE_REPO}
+  - url: ${APP_REPO}
     type: git
     branch: master
     dir_name: null
   triggers:
   - type: stage
   jobs:
-  - name: Sonar
+  - name: Build
     type: builder
     extension_id: ibm.devops.services.pipeline.npm.build
     INC_SNAPSHOT: 'false'
@@ -63,7 +63,27 @@ stages:
       npm install
       grunt sonarRunner:analysis
     SERVICE_INSTANCE_TYPE: nexus
-- name: Deploy
+- name: Deploy [DEV]
+  inputs:
+  - type: job
+    stage: Build
+    job: Build
+    dir_name: null
+  triggers:
+  - type: stage
+  jobs:
+  - name: Deploy
+    type: deployer
+    target:
+      region_id: ${PROD_REGION_ID}
+      organization: ${PROD_ORG_NAME}
+      space: ${PROD_SPACE_NAME}
+      application: ${CF_APP_NAME}
+    script: |-
+      #!/bin/bash
+
+      cf push "${CF_APP}" --hostname "${CF_APP}" -m 64M -p .
+- name: Deploy to Nexus
   inputs:
   - type: job
     stage: Build
