@@ -2,10 +2,9 @@
 stages:
 - name: Build
   inputs:
-  - url: ${APP_REPO}
+  - service: ${APP_REPO}
     type: git
     branch: master
-    dir_name: null
   triggers:
   - type: commit
   jobs:
@@ -33,10 +32,9 @@ stages:
     SERVICE_INSTANCE_TYPE: nexus
 - name: Sonar
   inputs:
-  - url: ${APP_REPO}
+  - service: ${APP_REPO}
     type: git
     branch: master
-    dir_name: null
   triggers:
   - type: stage
   jobs:
