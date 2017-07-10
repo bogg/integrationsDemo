@@ -50,5 +50,18 @@ services:
         env:
           ECHO_MODULE_REPO: echo-repo
         execute: true
+  app-build:
+    service_id: pipeline
+    parameters:
+      services:
+        - app-repo
+      name: '{{services.app-repo.parameters.repo_name}}'
+      ui-pipeline: true
+      configuration:
+        content:
+          $text: pipeline-app.yml
+        env:
+          APP_REPO: echo-repo
+        execute: true
   webide:
     service_id: orion
