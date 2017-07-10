@@ -8,8 +8,8 @@ template:
   header: '![](toolchain.svg?localize)'
   icon: icon.svg
   required:
-    - sample-build
-    - sample-repo
+    - echo-repo
+    - app-repo
   info:
     git url: >-
       [https://github.com/bogg/integrationsDemo](https://github.com/bogg/integrationsDemo)
@@ -65,3 +65,8 @@ services:
         execute: true
   webide:
     service_id: orion
+  nexus:
+    service_id: nexus
+  sonarqube:
+    service_id: sonarqube
+  
