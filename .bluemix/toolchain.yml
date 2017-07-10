@@ -69,4 +69,8 @@ services:
     service_id: nexus
   sonarqube:
     service_id: sonarqube
+  jenkins:
+    service_id: jenkins
+  jira:
+    service_id: jira
   
