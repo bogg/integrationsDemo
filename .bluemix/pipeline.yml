@@ -1,62 +1,101 @@
 ---
 stages:
-- name: BUILD
+- name: Build
   inputs:
-  - type: git
+  - url: ${ECHO_MODULE_REPO}
+    type: git
     branch: master
-    service: ${SAMPLE_REPO}
+    dir_name: null
   triggers:
   - type: commit
   jobs:
   - name: Build
     type: builder
-- name: DEPLOY
+    extension_id: ibm.devops.services.pipeline.npm.build
+    INC_SNAPSHOT: 'false'
+    SERVICE_INSTANCE: (default)
+    SONAR_SERVICE_INSTANCE: (default)
+    BUILD_COMMAND: |-
+      #!/bin/bash
+      # environment variables are available:
+      # NPM_NAME: name of the service instance
+      # NPM_USER_ID: userid for the npm registry
+      # NPM_TOKEN: the token or password for the npm registry
+      # NPM_RELEASE_URL: the private NPM registry
+      # NPM_MIRROR_URL: the proxy NPM registry, used as the default NPM registry
+      # NPM_MODULE_NAME: the module name of the package.json at the root of the workspace if available.
+      # SONAR_INSTANCE_NAME: the name of the SonarQube instance
+      # SONAR_SERVER_URL: the url of the SonarQube server
+      # SONAR_USER_ID: SonarQube user name
+      # SONAR_USER_TOKEN: SonarQube password or authentication token
+
+      npm install
+    SERVICE_INSTANCE_TYPE: nexus
+- name: Sonar
   inputs:
-  - type: job
-    stage: BUILD
-    job: Build
+  - url: ${ECHO_MODULE_REPO}
+    type: git
+    branch: master
+    dir_name: null
   triggers:
   - type: stage
-  properties:
-  - name: CF_APP_NAME
-    value: undefined
-    type: text
-  - name: APP_URL
-    value: undefined
-    type: text
   jobs:
-  - name: Blue-Green Deploy
-    type: deployer
-    target:
-      region_id: ${PROD_REGION_ID}
-      organization: ${PROD_ORG_NAME}
-      space: ${PROD_SPACE_NAME}
-      application: ${CF_APP_NAME}
-    script: |
+  - name: Sonar
+    type: builder
+    extension_id: ibm.devops.services.pipeline.npm.build
+    INC_SNAPSHOT: 'false'
+    SERVICE_INSTANCE: (default)
+    SONAR_SERVICE_INSTANCE: (default)
+    BUILD_COMMAND: |-
       #!/bin/bash
-      # Push app
-      if ! cf app $CF_APP; then  
-        cf push $CF_APP
-      else
-        OLD_CF_APP=${CF_APP}-OLD-$(date +"%s")
-        rollback() {
-          set +e  
-          if cf app $OLD_CF_APP; then
-            cf logs $CF_APP --recent
-            cf delete $CF_APP -f
-            cf rename $OLD_CF_APP $CF_APP
-          fi
-          exit 1
-        }
-        set -e
-        trap rollback ERR
-        cf rename $CF_APP $OLD_CF_APP
-        cf push $CF_APP
-        cf delete $OLD_CF_APP -f
-      fi
-      # Export app name and URL for use in later Pipeline jobs
-      export CF_APP_NAME="$CF_APP"
-      export APP_URL=http://$(cf app $CF_APP_NAME | grep urls: | awk '{print $2}')
-      # View logs
-      #cf logs "${CF_APP}" --recent
-      
+      # environment variables are available:
+      # NPM_NAME: name of the service instance
+      # NPM_USER_ID: userid for the npm registry
+      # NPM_TOKEN: the token or password for the npm registry
+      # NPM_RELEASE_URL: the private NPM registry
+      # NPM_MIRROR_URL: the proxy NPM registry, used as the default NPM registry
+      # NPM_MODULE_NAME: the module name of the package.json at the root of the workspace if available.
+      # SONAR_INSTANCE_NAME: the name of the SonarQube instance
+      # SONAR_SERVER_URL: the url of the SonarQube server
+      # SONAR_USER_ID: SonarQube user name
+      # SONAR_USER_TOKEN: SonarQube password or authentication token
+
+      npm install
+      grunt sonarRunner:analysis
+    SERVICE_INSTANCE_TYPE: nexus
+- name: Deploy
+  inputs:
+  - type: job
+    stage: Build
+    job: Build
+    dir_name: null
+  triggers:
+  - type: stage
+  jobs:
+  - name: Deploy to Nexus
+    type: builder
+    extension_id: ibm.devops.services.pipeline.npm.build
+    INC_SNAPSHOT: 'false'
+    SERVICE_INSTANCE: (default)
+    SONAR_SERVICE_INSTANCE: (default)
+    BUILD_COMMAND: |-
+      #!/bin/bash
+      # environment variables are available:
+      # NPM_NAME: name of the service instance
+      # NPM_USER_ID: userid for the npm registry
+      # NPM_TOKEN: the token or password for the npm registry
+      # NPM_RELEASE_URL: the private NPM registry
+      # NPM_MIRROR_URL: the proxy NPM registry, used as the default NPM registry
+      # NPM_MODULE_NAME: the module name of the package.json at the root of the workspace if available.
+      # SONAR_INSTANCE_NAME: the name of the SonarQube instance
+      # SONAR_SERVER_URL: the url of the SonarQube server
+      # SONAR_USER_ID: SonarQube user name
+      # SONAR_USER_TOKEN: SonarQube password or authentication token
+
+      npm publish --registry "${NPM_RELEASE_URL}"
+    SERVICE_INSTANCE_TYPE: nexus
+hooks:
+- enabled: true
+  label: null
+  ssl_enabled: false
+  url: https://devops-api.stage1.ng.bluemix.net/v1/messaging/webhook/publish
