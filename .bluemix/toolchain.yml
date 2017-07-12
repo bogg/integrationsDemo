@@ -59,7 +59,7 @@ services:
       ui-pipeline: true
       configuration:
         content:
-          $text: pipeline-app.yml
+          $text: pipeline.yml
         env:
           APP_REPO: app-repo
         execute: false
