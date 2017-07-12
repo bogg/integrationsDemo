@@ -2,9 +2,10 @@
 stages:
 - name: Build
   inputs:
-  - service: ${APP_REPO}
+  - url: https://github.com/othomann/dev-simple-app.git
     type: git
     branch: master
+    dir_name: null
   triggers:
   - type: commit
   jobs:
@@ -32,9 +33,10 @@ stages:
     SERVICE_INSTANCE_TYPE: nexus
 - name: Sonar
   inputs:
-  - service: ${APP_REPO}
+  - url: https://github.com/othomann/dev-simple-app.git
     type: git
     branch: master
+    dir_name: null
   triggers:
   - type: stage
   jobs:
@@ -73,10 +75,10 @@ stages:
   - name: Deploy
     type: deployer
     target:
-      region_id: ${PROD_REGION_ID}
-      organization: ${PROD_ORG_NAME}
-      space: ${PROD_SPACE_NAME}
-      application: ${CF_APP_NAME}
+      region_id: ibm:ys1:us-south
+      organization: olivier_thomann@ca.ibm.com
+      space: dev
+      application: otc-simple-app-demo-dev
     script: |-
       #!/bin/bash
 
