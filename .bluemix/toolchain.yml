@@ -59,7 +59,7 @@ services:
       ui-pipeline: true
       configuration:
         content:
-          $text: pipeline_app.yml
+          $text: pipeline-app.yml
         env:
           APP_REPO: app-repo
         execute: false
@@ -69,6 +69,12 @@ services:
     service_id: nexus
     parameters:
       name: 'my-nexus'
-      type: 'maven'
+      dashboard_url: 'http://nexus3.mybluemix.net/'
+      type: 'npm'
+      release_url: 'http://nexus3.mybluemix.net/repository/npm-internal/'
+      mirror_url: 'http://nexus3.mybluemix.net/repository/npm-mirror/'
   sonarqube:
     service_id: sonarqube
+    parameters:
+      name: 'my-sonarqube'
+      dashboard_url: 'https://idssonarqube6.mybluemix.net/'
