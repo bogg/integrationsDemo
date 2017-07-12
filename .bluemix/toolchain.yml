@@ -67,5 +67,8 @@ services:
     service_id: orion
   nexus:
     service_id: nexus
+    parameters:
+      name: 'my-nexus'
+      type: 'maven'
   sonarqube:
     service_id: sonarqube
