@@ -58,7 +58,6 @@ stages:
       # SONAR_USER_ID: SonarQube user name
       # SONAR_USER_TOKEN: SonarQube password or authentication token
 
-      npm install
       grunt sonarRunner:analysis
     SERVICE_INSTANCE_TYPE: nexus
 - name: Deploy
